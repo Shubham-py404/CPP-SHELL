@@ -1,0 +1,14 @@
+# Compiled binaries
+cell
+cell.exe
+*.o
+*.out
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Build directories
+build/
+dist/

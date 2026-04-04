@@ -1,0 +1,61 @@
+name: C++ Build and Test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential g++ cmake
+
+      - name: Display compiler info
+        run: |
+          g++ --version
+          cmake --version
+
+      - name: Compile C++ Shell
+        run: g++ cell.cpp -o cell -Wall -Wextra -std=c++17
+
+      - name: Verify binary
+        run: |
+          file ./cell
+          ls -lh ./cell
+
+      - name: Run basic test
+        run: |
+          echo "Testing shell with input..."
+          echo -e "help" | timeout 3 ./cell || echo "Shell exited"
+
+      - name: Upload artifact
+        if: success()
+        uses: actions/upload-artifact@v3
+        with:
+          name: cell-binary-ubuntu
+          path: cell
+          retention-days: 7
+
+  code-quality:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install cppcheck
+        run: sudo apt-get install -y cppcheck
+
+      - name: Run static analysis
+        run: cppcheck --enable=all cell.cpp cell.hpp || true

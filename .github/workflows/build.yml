@@ -41,7 +41,7 @@ jobs:
 
       - name: Upload artifact
         if: success()
-        uses: actions/upload-artifact@v3
+        ses: actions/upload-artifact@v4
         with:
           name: cell-binary-ubuntu
           path: cell

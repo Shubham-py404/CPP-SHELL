@@ -26,7 +26,14 @@ char *  cell_read_line( void  )
     // todo - replace buf and size with a string aaa
      char * buf = NULL ; 
      size_t bufsize =0  ; 
-     p(GREEN "$$> " RST) ;
+     char cwd[BUFSIZ] ; 
+
+     Getcwd(cwd , sizeof(cwd)) ; 
+    
+     p(C <<  cwd << " $$> " << RST)  ; 
+         
+
+
      if(getline(&buf , &bufsize , stdin) == -1 ){
          buf  = NULL ; 
 
@@ -44,19 +51,17 @@ char *  cell_read_line( void  )
 
 
 
-int main(int ac , char** av ){ // argument vector
+int main( ){ // argument vector
     char * line ; 
-
-
-    while (true){
+    while (line = cell_read_line() ){
         // get line
 
         // getline() //- >  stdio that is used for input and output in c++ (input , string name )
-        line = cell_read_line( ) ; 
+ 
          if (line == NULL){
              break ; 
          }
-        p(YELLOW << line << RST) ; 
+        p(Y << line << RST) ; 
          free(line) ; // free the memory allocated by getline
     }
     return EXIT_SUCCESS ; 

@@ -3,7 +3,7 @@
 
 using namespace std ; 
 
-// run command  - g++ cell.cpp -o cell && ./cell <command >
+
 
 //demo 
 // int main(int ac , char** av ){ // argument vector
@@ -24,8 +24,8 @@ char *  cell_read_line( void  )
 {
 
     // todo - replace buf and size with a string aaa
-     char * buf ; 
-     size_t bufsize ; 
+     char * buf = NULL ; 
+     size_t bufsize =0  ; 
      p(GREEN "$$> " RST) ;
      if(getline(&buf , &bufsize , stdin) == -1 ){
          buf  = NULL ; 
@@ -39,7 +39,6 @@ char *  cell_read_line( void  )
           p(RED "Getline  failed\n" RST) ; 
         }
      }  
-     cout << YELLOW "You entered: " << buf << RST ;
      return buf ; 
 }
 
@@ -57,7 +56,7 @@ int main(int ac , char** av ){ // argument vector
          if (line == NULL){
              break ; 
          }
-        p(line) ; 
+        p(YELLOW << line << RST) ; 
          free(line) ; // free the memory allocated by getline
     }
     return EXIT_SUCCESS ; 

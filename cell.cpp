@@ -26,10 +26,10 @@ char *  cell_read_line( void  )
     // todo - replace buf and size with a string aaa
      char * buf = NULL ; 
      size_t bufsize =0  ; 
-     char cwd[BUFSIZ] ; 
-
+     char cwd[BUFSIZ] ;         
+ 
      Getcwd(cwd , sizeof(cwd)) ; 
-    
+     
      p(C <<  cwd << " $$> " << RST)  ; 
          
 
@@ -38,7 +38,7 @@ char *  cell_read_line( void  )
          buf  = NULL ; 
 
         if(feof(stdin)){
-            p(RED "[EOF]\n" RST) ; 
+            p(RED "\n" RST) ; 
 
         }
         else {
@@ -52,6 +52,8 @@ char *  cell_read_line( void  )
 
 
 int main( ){ // argument vector
+    PB1() ; 
+
     char * line ; 
     while (line = cell_read_line() ){
         // get line
@@ -61,7 +63,7 @@ int main( ){ // argument vector
          if (line == NULL){
              break ; 
          }
-        p(Y << line << RST) ; 
+        p(Y << line  <<  RST) ; 
          free(line) ; // free the memory allocated by getline
     }
     return EXIT_SUCCESS ; 

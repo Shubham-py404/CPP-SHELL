@@ -20,51 +20,72 @@ using namespace std ;
 // lets use loop to run multiple commands 
 // REPL - read , eval , print / exec  , loop ; 
 
-char *  cell_read_line( void  )
-{
+// char *  cell_read_line( void  )
+// {
 
-    // todo - replace buf and size with a string aaa
-     char * buf = NULL ; 
-     size_t bufsize =0  ; 
-     char cwd[BUFSIZ] ;         
+//     // todo - replace buf and size with a string aaa
+//      char * buf = NULL ; 
+//      size_t bufsize =0  ; 
+//      char cwd[BUFSIZ] ;         
  
-     Getcwd(cwd , sizeof(cwd)) ; 
+//      Getcwd(cwd , sizeof(cwd)) ; 
      
-     p(C <<  cwd << " $$> " << RST)  ; 
+//      p(C <<  cwd << " $$> " << RST)  ; 
          
 
 
-     if(getline(&buf , &bufsize , stdin) == -1 ){
-         buf  = NULL ; 
+//      if(getline(&buf , &bufsize , stdin) == -1 ){
+//          buf  = NULL ; 
 
-        if(feof(stdin)){
-            p(RED "\n" RST) ; 
+//         if(feof(stdin)){
+//             p(RED "\n" RST) ; 
 
-        }
-        else {
+//         }
+//         else {
         
-          p(RED "Getline  failed\n" RST) ; 
-        }
-     }  
-     return buf ; 
+//           p(RED "Getline  failed\n" RST) ; 
+//         }
+//      }  
+//      return buf ; 
+// }
+
+string cell_read_line(){
+    char  cwd[BUFSIZ] ; 
+    Getcwd(cwd , sizeof(cwd )) ; 
+     p(C <<  cwd << " $$> " << RST)  ; 
+     string line ; 
+     if(!getline(cin  , line) ){
+        line="" ; 
+         if (cin.eof ()){
+            p(RED "\n" RST ) ; 
+         }
+         else {
+             p(RED "Getline  failed\n" RST) ; 
+         }
+     }
+     return line ; 
 }
 
 
+// vector <string>  split_line (){
+//     string line ; 
+//     return line ; 
+// }
 
-int main( ){ // argument vector
+int main(  ){ // argument vector
     PB1() ; 
 
-    char * line ; 
-    while (line = cell_read_line() ){
+    string line ; 
+  
+    while ( true ){
         // get line
+      line= cell_read_line() ;
 
-        // getline() //- >  stdio that is used for input and output in c++ (input , string name )
- 
-         if (line == NULL){
+         if (line == "" && cin.eof() ){ // if line is empty and end of file is reached
              break ; 
          }
-        p(Y << line  <<  RST) ; 
-         free(line) ; // free the memory allocated by getline
+        p(Y << line  << endl << RST) ; 
+            
     }
     return EXIT_SUCCESS ; 
 }

@@ -10,6 +10,7 @@
 #include <vector> 
 #include <cstdio>
 #include <string>
+#include <sstream>
 using namespace std ; 
 /*
 ** ANSI color code for terminal output formatting
@@ -27,6 +28,8 @@ using namespace std ;
 #define BL "\033[1;30m"
 #define B "\033[1;34m"
 #define RST "\033[0m"
+
+#define DEL "\t \v\f\r\n"
 
 #define p(...) cout << __VA_ARGS__     // it is used for printing output to the terminal with a newline at the end
 

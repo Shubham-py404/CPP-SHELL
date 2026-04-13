@@ -20,34 +20,7 @@ using namespace std ;
 // lets use loop to run multiple commands 
 // REPL - read , eval , print / exec  , loop ; 
 
-// char *  cell_read_line( void  )
-// {
 
-//     // todo - replace buf and size with a string aaa
-//      char * buf = NULL ; 
-//      size_t bufsize =0  ; 
-//      char cwd[BUFSIZ] ;         
- 
-//      Getcwd(cwd , sizeof(cwd)) ; 
-     
-//      p(C <<  cwd << " $$> " << RST)  ; 
-         
-
-
-//      if(getline(&buf , &bufsize , stdin) == -1 ){
-//          buf  = NULL ; 
-
-//         if(feof(stdin)){
-//             p(RED "\n" RST) ; 
-
-//         }
-//         else {
-        
-//           p(RED "Getline  failed\n" RST) ; 
-//         }
-//      }  
-//      return buf ; 
-// }
 
 string cell_read_line(){
     char  cwd[BUFSIZ] ; 
@@ -67,25 +40,55 @@ string cell_read_line(){
 }
 
 
-// vector <string>  split_line (){
-//     string line ; 
-//     return line ; 
-// }
+vector <char*>  split_line (string &line ){
+    vector<char*> tokens; 
 
-int main(  ){ // argument vector
+    size_t st = line.find_first_not_of(DEL);
+
+    while(st != string::npos) {
+         
+        tokens.push_back(&line[st]);
+        
+        size_t ed = line.find_first_of(DEL, st);
+
+        if (ed == string::npos)   break ; 
+
+        line[ed] = '\0'; 
+            
+        st = line.find_first_not_of(DEL, ed + 1);
+    }
+
+   
+    tokens.push_back(nullptr);
+
+    return tokens ;
+
+}
+
+int main(  ){
     PB1() ; 
 
-    string line ; 
-  
-    while ( true ){
-        // get line
-      line= cell_read_line() ;
+    string  line ;
+    while ( true ) { 
+        
+         line = cell_read_line() ;
+         if (line == "" && cin.eof() ) break ; 
+       
+         
+         p(Y << "line : " << line  << endl << RST) ; 
 
-         if (line == "" && cin.eof() ){ // if line is empty and end of file is reached
-             break ; 
-         }
-        p(Y << line  << endl << RST) ; 
-            
+         vector<char*> arg = split_line(line);
+        
+        int pid = fork() ; 
+        if(!pid){
+            execvp(arg[0] , arg.data()) ; 
+            p(RED "Command not found : " << arg[0] << "\n" RST) ; 
+            exit(EXIT_FAILURE) ;
+        }
+         
+
+    
+        
     }
     return EXIT_SUCCESS ; 
 }

@@ -1,25 +1,55 @@
 #include "cell.hpp"
 
 
-using namespace std ; 
+t_builtin g_builtin[] = 
+{
+    {.builtin_name = "env" ,  .foo = cell_env}  ,
+  {.builtin_name = "exit" , .foo = cell_exit}  ,
+  {.builtin_name = "time", .foo = cell_time},
+  {.builtin_name = NULL , .foo = nullptr} , 
+} ; 
 
 
+int status =0 ; 
 
-//demo 
-// int main(int ac , char** av ){ // argument vector
-//      (void) ac ; // ac (argument count) is the number of items typed in the terminal
-//      // void ac is to avoid unused variable warning 
-//     int status ; 
-//     if (fork()==0){ /// returning 0 means we are in child process 
-//         execvp(av[1] , av+1) ; // excvp is used for executing a command in linux systems
-//     }
-//     wait(&status) ; 
-//     return EXIT_SUCCESS ; 
-// }
 
 // lets use loop to run multiple commands 
 // REPL - read , eval , print / exec  , loop ; 
 
+// is built- in 
+//   call it - echo , env , exit 
+// else -> fork + execvp +wait
+
+void cell_launch(vector <char*> & arg ){
+    int pid = fork() ;
+    if(pid==0){
+           if ( execvp(arg[0] , arg.data()) == -1 ) {
+            p(RED "Command not found : " << arg[0] << "\n" RST) ; 
+            exit(EXIT_FAILURE) ;
+           }
+    }
+    else if (pid < 0 ){
+        p(RED "Failed to fork process\n" RST) ; 
+    }
+    else {
+     
+        wait(&status) ;
+    }
+}
+
+void cell_exec(vector <char*> & args ){
+    if (args.empty() || args[0] == nullptr) return;
+    int i = 0  ; 
+    const char * curr ; 
+    while (curr = g_builtin[i].builtin_name) {
+        if ( !strcmp(curr , args[0]) ) {
+         status =  g_builtin[i].foo(args)  ; 
+          return ; 
+        }
+        ++i ; 
+    }
+    cell_launch(args) ; 
+}
 
 
 string cell_read_line(){
@@ -75,17 +105,11 @@ int main(  ){
          if (line == "" && cin.eof() ) break ; 
        
          
-         p(Y << "line : " << line  << endl << RST) ; 
 
          vector<char*> arg = split_line(line);
         
-        int pid = fork() ; 
-        if(!pid){
-            execvp(arg[0] , arg.data()) ; 
-            p(RED "Command not found : " << arg[0] << "\n" RST) ; 
-            exit(EXIT_FAILURE) ;
-        }
-         
+
+        cell_exec(arg) ; 
 
     
         

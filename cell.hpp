@@ -11,6 +11,10 @@
 #include <cstdio>
 #include <string>
 #include <sstream>
+#include <cstring>
+#include <thread>
+#include <chrono>
+#include <ctime> 
 using namespace std ; 
 /*
 ** ANSI color code for terminal output formatting
@@ -30,11 +34,20 @@ using namespace std ;
 #define RST "\033[0m"
 
 #define DEL "\t \v\f\r\n"
+#
 
 #define p(...) cout << __VA_ARGS__     // it is used for printing output to the terminal with a newline at the end
+#define cell_jr 0 
+typedef struct s_builtin{
+  const char* builtin_name ; 
+  int (*foo)(vector<char*> &args) ;
+} t_builtin ; 
 
 void Getcwd(char * ,size_t ) ; 
 void PB1() ; 
 void PB2() ;
+int cell_exit(vector <char*> &) ; 
+int cell_time(vector<char*> &);
+int cell_env(vector<char*> &);
 
 #endif

@@ -1,53 +1,56 @@
 #include "cell.hpp"
 
 
-using namespace std ; 
+t_builtin g_builtin[] = 
+{
+    {.builtin_name = "env" ,  .foo = cell_env}  ,
+  {.builtin_name = "exit" , .foo = cell_exit}  ,
+  {.builtin_name = "time", .foo = cell_time},
+  {.builtin_name = NULL , .foo = nullptr} , 
+} ; 
 
 
+int status =0 ; 
 
-//demo 
-// int main(int ac , char** av ){ // argument vector
-//      (void) ac ; // ac (argument count) is the number of items typed in the terminal
-//      // void ac is to avoid unused variable warning 
-//     int status ; 
-//     if (fork()==0){ /// returning 0 means we are in child process 
-//         execvp(av[1] , av+1) ; // excvp is used for executing a command in linux systems
-//     }
-//     wait(&status) ; 
-//     return EXIT_SUCCESS ; 
-// }
 
 // lets use loop to run multiple commands 
 // REPL - read , eval , print / exec  , loop ; 
 
-// char *  cell_read_line( void  )
-// {
+// is built- in 
+//   call it - echo , env , exit 
+// else -> fork + execvp +wait
 
-//     // todo - replace buf and size with a string aaa
-//      char * buf = NULL ; 
-//      size_t bufsize =0  ; 
-//      char cwd[BUFSIZ] ;         
- 
-//      Getcwd(cwd , sizeof(cwd)) ; 
+void cell_launch(vector <char*> & arg ){
+    int pid = fork() ;
+    if(pid==0){
+           if ( execvp(arg[0] , arg.data()) == -1 ) {
+            p(RED "Command not found : " << arg[0] << "\n" RST) ; 
+            exit(EXIT_FAILURE) ;
+           }
+    }
+    else if (pid < 0 ){
+        p(RED "Failed to fork process\n" RST) ; 
+    }
+    else {
      
-//      p(C <<  cwd << " $$> " << RST)  ; 
-         
+        wait(&status) ;
+    }
+}
 
+void cell_exec(vector <char*> & args ){
+    if (args.empty() || args[0] == nullptr) return;
+    int i = 0  ; 
+    const char * curr ; 
+    while (curr = g_builtin[i].builtin_name) {
+        if ( !strcmp(curr , args[0]) ) {
+         status =  g_builtin[i].foo(args)  ; 
+          return ; 
+        }
+        ++i ; 
+    }
+    cell_launch(args) ; 
+}
 
-//      if(getline(&buf , &bufsize , stdin) == -1 ){
-//          buf  = NULL ; 
-
-//         if(feof(stdin)){
-//             p(RED "\n" RST) ; 
-
-//         }
-//         else {
-        
-//           p(RED "Getline  failed\n" RST) ; 
-//         }
-//      }  
-//      return buf ; 
-// }
 
 string cell_read_line(){
     char  cwd[BUFSIZ] ; 
@@ -67,25 +70,49 @@ string cell_read_line(){
 }
 
 
-// vector <string>  split_line (){
-//     string line ; 
-//     return line ; 
-// }
+vector <char*>  split_line (string &line ){
+    vector<char*> tokens; 
 
-int main(  ){ // argument vector
+    size_t st = line.find_first_not_of(DEL);
+
+    while(st != string::npos) {
+         
+        tokens.push_back(&line[st]);
+        
+        size_t ed = line.find_first_of(DEL, st);
+
+        if (ed == string::npos)   break ; 
+
+        line[ed] = '\0'; 
+            
+        st = line.find_first_not_of(DEL, ed + 1);
+    }
+
+   
+    tokens.push_back(nullptr);
+
+    return tokens ;
+
+}
+
+int main(  ){
     PB1() ; 
 
-    string line ; 
-  
-    while ( true ){
-        // get line
-      line= cell_read_line() ;
+    string  line ;
+    while ( true ) { 
+        
+         line = cell_read_line() ;
+         if (line == "" && cin.eof() ) break ; 
+       
+         
 
-         if (line == "" && cin.eof() ){ // if line is empty and end of file is reached
-             break ; 
-         }
-        p(Y << line  << endl << RST) ; 
-            
+         vector<char*> arg = split_line(line);
+        
+
+        cell_exec(arg) ; 
+
+    
+        
     }
     return EXIT_SUCCESS ; 
 }

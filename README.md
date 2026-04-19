@@ -25,7 +25,7 @@ git push -u origin main
 ```
 
 ```bash
-g++ cell.cpp -o cell && ./cell <command >
+g++ cell.cpp utils.cpp builtin.cpp -o cell && ./cell
 ```
 
 
@@ -35,7 +35,8 @@ Cell is a simple command-line shell implementation written in C++. It provides a
 ## Files
 - `cell.hpp`: Header file containing includes, color definitions, and utility macros
 - `cell.cpp`: Main implementation file with the shell logic
-- `inst.md`: Installation and setup instructions
+- `utils.cpp`
+- `builtin.cpp`
 
 ## Key Components
 
@@ -57,8 +58,7 @@ ANSI escape codes for terminal text coloring:
 - `GREEN`: Green text color
 - `RST`: Reset to default color
 
-#### Utility Macro
-- `p(...)`: A convenience macro that wraps `cout << __VA_ARGS__` for printing with automatic newline
+
 
 ### Implementation File (cell.cpp)
 
@@ -67,9 +67,6 @@ ANSI escape codes for terminal text coloring:
 
 **Parameters**: None
 
-**Return Value**: 
-- `char*`: Pointer to the input string on success
-- `NULL`: On EOF or error
 
 **Behavior**:
 1. Displays a green prompt "$$> " to indicate readiness for input
@@ -82,9 +79,6 @@ ANSI escape codes for terminal text coloring:
 #### main() Function
 **Purpose**: Implements the main REPL loop of the shell.
 
-**Parameters**:
-- `ac`: Argument count (unused)
-- `av`: Argument vector (unused)
 
 **Behavior**:
 1. Enters an infinite loop
@@ -94,20 +88,6 @@ ANSI escape codes for terminal text coloring:
 5. Frees the memory allocated by `getline()`
 6. Continues loop for next input
 
-## Usage
-Compile and run the shell:
-```bash
-g++ cell.cpp -o cell
-./cell
-```
-
-The shell will display a green "$$> " prompt. Type commands or text, and it will echo them back in yellow. Press Ctrl+D to exit.
-
-## Current Limitations
-- Does not execute commands - only echoes input
-- No command parsing or execution logic
-- Basic error handling
-- Linux-specific includes (unistd.h, sys/wait.h)
 
 ## Future Enhancements
 - Command parsing and execution

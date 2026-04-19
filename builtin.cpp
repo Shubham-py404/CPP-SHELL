@@ -8,39 +8,37 @@ int cell_exit(vector<char *> &args)
 
         cout << Y << "Initiating shutdown sequence..." << RST << endl;
 
-        // 2. The Progress Bar Loop
+
         int bar_width = 15;
         for (int i = 0; i <= bar_width; ++i)
         {
-            // \r moves the cursor back to the start of the line
+            
             cout << "\r[";
 
-            // Draw the filled part of the bar
+            
             for (int j = 0; j < bar_width; ++j)
             {
                 if (j < i)
                 {
-                    cout << G << "=" << RST; // Green filled area
+                    cout << G << "=" << RST; 
                 }
                 else if (j == i)
                 {
-                    cout << C << ">" << RST; // Cyan leading arrow
+                    cout << C << ">" << RST; 
                 }
                 else
                 {
-                    cout << " "; // Empty space
+                    cout << " "; 
                 }
             }
 
-            // Calculate percentage and print it
-            int percent = (i * 100) / bar_width;
-            cout << "] " << percent << "% " << flush; // flush forces the screen to update!
 
-            // Pause for 50 milliseconds before drawing the next frame
+            int percent = (i * 100) / bar_width;
+            cout << "] " << percent << "% " << flush; 
+            
             this_thread::sleep_for(chrono::milliseconds(50));
         }
 
-        // 3. Print the final goodbye and restore the cursor
         cout << endl
              << RED << "Powering off. Goodbye!" << RST << endl;
         cout << "\033[?25h";
@@ -52,17 +50,13 @@ int cell_exit(vector<char *> &args)
 
 
 int cell_time(vector<char*> &args) {
-    (void) args; // We don't need any arguments for this command
+    (void) args;
     
-    // 1. Get the current time from the operating system
     time_t now = time(0);
     
-    // 2. Convert it into a readable human string
     char* dt = ctime(&now);
     
-    // 3. Print it out! 
-    // Note: ctime() automatically adds a newline (\n) at the end of the string
-    cout << G << "⌚ Current System Time: " << Y << dt << RST;
+    cout << G << " Time: " << Y << dt << RST;
     
     return 1; 
 }

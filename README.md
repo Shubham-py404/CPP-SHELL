@@ -1,118 +1,59 @@
+# CPP-SHELL (Cell Shell)
 
-# Cell Shell Documentation
+Welcome to **Cell**, a custom, AI-augmented command-line shell written in C++. It features a standard Read-Eval-Print Loop (REPL), parses user input, executes system commands, and deeply integrates with the Gemini API to offer AI-powered assistance, natural language command generation, and context-aware auto-completion.
 
-## Table of Contents
+---
 
-- [Overview](#overview)
-- [Files](#files)
-- [Key Components](#key-components)
-- [Usage](#usage)
-- [Current Limitations](#current-limitations)
-- [Future Enhancements](#future-enhancements)
+## File Structure & Roles
 
-# GITHUB 
-- `REPO` - https://github.com/Shubham-py404/CPP-SHELL.git
+*   **`cell.hpp`**: The main header file. It declares function prototypes, includes necessary POSIX/C++ standard libraries and third-party dependencies (`libcurl`, `nlohmann/json`), and defines terminal ANSI colors and the `t_builtin` struct for mapping commands.
+*   **`cell.cpp`**: The core shell engine. Contains the REPL (`main()` loop), raw terminal input handling for live AI autocomplete (ghost text), tokenization logic, and the execution engine that spans child processes.
+*   **`builtin.cpp`**: Implements custom built-in shell commands (e.g., `cd`, `exit`, `time`) as well as the specialized AI integration commands (`ai` and `cmd`).
+*   **`utils.cpp`**: Contains helper utilities for making HTTP network requests to the Gemini API, parsing the `.env` file, toggling terminal raw mode, tracking history, and building AI context.
+*   **`Makefile`**: A build configuration file that automates the compilation process using `g++` and links the required `libcurl` dependency.
+*   **`json.hpp`**: A single-header library (`nlohmann/json`) used to parse JSON responses from the Gemini API and structure JSON payloads.
 
-```bash
-init repo - 
-echo "# CPP-SHELL" >> README.md
-git init
-git add README.md
-git commit -m "first commit"
-git branch -M main
-git remote add origin https://github.com/Shubham-py404/CPP-SHELL.git
-git push -u origin main
-```
+---
 
-```bash
-g++ cell.cpp -o cell && ./cell <command >
-```
+## System Utilities & POSIX Functions
 
+Cell leverages various system-level utilities and POSIX (Unix-like) functions to emulate standard terminal behaviors:
 
-## Overview
-Cell is a simple command-line shell implementation written in C++. It provides a basic Read-Eval-Print Loop (REPL) that reads user input, processes it, and displays output with color formatting.
+*   **`make`**: A build automation tool that reads the `Makefile` to compile the `.cpp` files into object files and link them into the final `cpp-shell` executable. It speeds up recompilation by only building files that have changed.
+*   **`fork()`**: A POSIX system call that creates a new process (child) by duplicating the current process (parent). Cell uses this when it needs to run a command like `ls` or `grep` without terminating the shell itself.
+*   **`execvp()`**: Used inside the child process created by `fork()`. It replaces the child's process image with a new executable program, searching the system's `PATH` to find it.
+*   **`waitpid()`**: Used by the parent shell process to wait for the child process to finish executing before re-drawing the `$$>` prompt.
+*   **`tcgetattr()` / `tcsetattr()`**: Functions from `<termios.h>` used to manipulate terminal attributes. Cell uses these to toggle "raw mode", which disables line-buffering and local echo, allowing the shell to instantly intercept keypresses (like `TAB` for autocomplete).
+*   **`popen()` / `pclose()`**: Used to open a pipe to a command, allowing the shell to execute a process and silently capture its `stdout` output (used heavily to fetch context for the AI).
+*   **`system()`**: Executes a command via the host system's default shell (`/bin/sh`). Used by the `cmd` function to safely execute AI-generated commands containing pipes (`|`) or redirects (`>`).
+*   **`libcurl`**: A client-side URL transfer library used to perform synchronous HTTP POST requests to the Google Gemini API.
 
-## Files
-- `cell.hpp`: Header file containing includes, color definitions, and utility macros
-- `cell.cpp`: Main implementation file with the shell logic
-- `inst.md`: Installation and setup instructions
+---
 
-## Key Components
+## Functions Summary
 
-### Header File (cell.hpp)
+### `cell.cpp`
+*   **`cell_read_line()`**: Reads user input character-by-character in raw mode, calculates terminal wraps, handles backspaces, and fetches/renders AI autocomplete on `TAB`.
+*   **`split_line()`**: Parses the user's raw input string and tokenizes it into an array of arguments, respecting single/double quotes.
+*   **`cell_exec()`**: Determines if a command is a built-in. If it is, it routes to the corresponding C++ function; otherwise, it delegates to `cell_launch()`.
+*   **`cell_launch()`**: Uses `fork()` and `execvp()` to execute external system programs, handling "command not found" errors.
+*   **`main()`**: The shell's entry point. Loads the environment, prints the welcome banner, and runs the infinite REPL loop.
 
-#### Includes
-- `<iostream>`: For input/output operations
-- `<unistd.h>`: Provides `fork()` and `execvp()` functions for process management (Linux systems)
-- `<sys/wait.h>`: Contains `wait()` function for process synchronization
-- `<cstdlib>`: Defines `EXIT_SUCCESS` constant
-- `<vector>`: For dynamic arrays (included but not used in current implementation)
-- `<string>`: For string operations (included but not used in current implementation)
+### `builtin.cpp`
+*   **`cell_cd()`**: Built-in command to change directories, featuring support for `~` (home directory) expansion.
+*   **`cell_exit()`**: Built-in command to gracefully terminate the shell, displaying an animated progress bar.
+*   **`cell_env()`**: Prints out all environment variables inherited by the shell.
+*   **`cell_time()`**: Fetches and prints the system's current local time.
+*   **`cell_ai()`**: Takes natural language text from the user, prompts the Gemini API, and prints the AI's conversational response.
+*   **`cell_cmd()`**: Translates a user's natural language request into a valid terminal command, displays it, and asks for `(y/n)` confirmation before executing it.
 
-#### Color Definitions
-ANSI escape codes for terminal text coloring:
-- `YELLOW`: Yellow text color
-- `RED`: Red text color
-- `CYAN`: Cyan text color
-- `GREEN`: Green text color
-- `RST`: Reset to default color
-
-#### Utility Macro
-- `p(...)`: A convenience macro that wraps `cout << __VA_ARGS__` for printing with automatic newline
-
-### Implementation File (cell.cpp)
-
-#### cell_read_line() Function
-**Purpose**: Reads a single line of input from the user via stdin.
-
-**Parameters**: None
-
-**Return Value**: 
-- `char*`: Pointer to the input string on success
-- `NULL`: On EOF or error
-
-**Behavior**:
-1. Displays a green prompt "$$> " to indicate readiness for input
-2. Uses `getline()` to read input from stdin
-3. Handles EOF condition (Ctrl+D) by printing "[EOF]" in red
-4. Handles getline errors by printing "Getline failed" in red
-5. Echoes the entered text in yellow for confirmation
-6. Returns the buffer containing the input
-
-#### main() Function
-**Purpose**: Implements the main REPL loop of the shell.
-
-**Parameters**:
-- `ac`: Argument count (unused)
-- `av`: Argument vector (unused)
-
-**Behavior**:
-1. Enters an infinite loop
-2. Calls `cell_read_line()` to get user input
-3. If input is NULL (EOF/error), breaks out of loop
-4. Prints the input line
-5. Frees the memory allocated by `getline()`
-6. Continues loop for next input
-
-## Usage
-Compile and run the shell:
-```bash
-g++ cell.cpp -o cell
-./cell
-```
-
-The shell will display a green "$$> " prompt. Type commands or text, and it will echo them back in yellow. Press Ctrl+D to exit.
-
-## Current Limitations
-- Does not execute commands - only echoes input
-- No command parsing or execution logic
-- Basic error handling
-- Linux-specific includes (unistd.h, sys/wait.h)
-
-## Future Enhancements
-- Command parsing and execution
-- Built-in commands (cd, exit, etc.)
-- Command history
-- Tab completion
-- Cross-platform compatibility
-# CPP-SHELL
+### `utils.cpp`
+*   **`Getcwd()`**: A wrapper around `getcwd()` that safely fetches and prints the current working directory.
+*   **`PB1()` / `PB2()`**: Utility functions that print the ASCII art banners during startup.
+*   **`WriteCallback()`**: A required callback function used by `libcurl` to append network response chunks into a C++ string buffer.
+*   **`call_gemini_api()`**: Configures `libcurl`, constructs the JSON payload, executes the API request, and parses the returned JSON safely.
+*   **`load_env_file()`**: Reads a local `.env` file and uses `setenv()` to securely load variables (like `GEMINI_API_KEY`) into the process environment.
+*   **`enableRawMode()` / `disableRawMode()`**: Configures the terminal to intercept individual keystrokes or restores standard canonical behavior.
+*   **`add_to_history()`**: Adds successful commands to a vector tracking the current session's command history.
+*   **`get_system_context()`**: Silently runs commands (like `ls` or `git branch`) via `popen()` to build contextual awareness for the AI.
+*   **`get_ai_autocomplete()`**: Gathers the system context, session history, and user input, builds a highly specific prompt, and queries Gemini to provide shell autocomplete suggestions (ghost text).

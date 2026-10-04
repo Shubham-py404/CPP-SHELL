@@ -1,0 +1,7 @@
+.env
+.vs
+cell
+cpp-shell
+*.o
+Mini-Project
+Makefile
